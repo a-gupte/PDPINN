@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import math
 
 torch.manual_seed(0)
-maxiter = 2001
+maxiter = 1001
 problem = Problem_Sphere_Poisson()
 
 
@@ -113,7 +113,7 @@ def construct_model(net):
     return Poisson1dModel()
 
 
-fig2 = plt.figure(constrained_layout=False, figsize=(16, 10))
+fig2 = plt.figure(constrained_layout=False, figsize=(8, 5))
 grid = fig2.add_gridspec(2, 3)
 ax = [[None, None], [None, None]]
 
@@ -123,16 +123,22 @@ ax[1][0] = fig2.add_subplot(grid[1, :2])
 ax[1][1] = fig2.add_subplot(grid[1, 2])
 
 basis = SPHBasis()
-net1 = SPH_Sphere_Net([3, 50, 50, 50, 16], basis)
-net0 = Sphere_Net([3, 50, 50, 50, 16, 1])
+pdpinn_net = SPH_Sphere_Net([3, 50, 50, 50, 16], basis)
+# net0 = Sphere_Net([3, 50, 50, 50, 16, 1])
 
-net_table = [net0, net1]
-for i, net in enumerate(net_table):
-    print('{}-th net'.format(i))
-    model = construct_model(net)
-    model.train()
-    model.plot(model.net, ax[i][0])
-    model.post_process(ax[i][1])
+net_table = [pdpinn_net]
+
+pdpinn_model = construct_model(pdpinn_net)
+pdpinn_model.train()
+pdpinn_model.plot(pdpinn_model.net, ax[0][0])
+pdpinn_model.post_process(ax[0][1])
+
+# for i, net in enumerate(net_table):
+#     print('{}-th net'.format(i))
+#     model = construct_model(net)
+#     model.train()
+#     model.plot(model.net, ax[i][0])
+#     model.post_process(ax[i][1])
 
 ax[0][0].set_ylabel('Sphere-PINN')
 ax[1][0].set_ylabel('Sphere-PINN-PD')
