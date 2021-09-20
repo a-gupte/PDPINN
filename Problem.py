@@ -202,20 +202,22 @@ class Problem_Sphere_Poisson(Problem):
         #     - (-(m) * (m + 1) * torch.cos(theta) * (torch.sin(theta) ** (m - 1)) * torch.cos(\
         #         (m - 1) * phi - 0.0 * m) - 2 * torch.cos(theta))
         # return lhs, rhs
-        
+       
+    
         m = self.m
         dy_x = torch.autograd.grad(sum(y[:, :]), x, retain_graph=True, create_graph=True)[0]
         dy_x, dy_t = dy_x[:, 0:1], dy_x[:, 1:]
         sinx = torch.sin(x[:, 0:1])
         dy_xx = torch.autograd.grad(sum(dy_x[:, :] * sinx), x, retain_graph=True, create_graph=True)[0][:, 0:1]
         dy_tt = torch.autograd.grad(sum(dy_t[:, :]), x, retain_graph=True, create_graph=True)[0][:, 1:]
+        
         return (
             dy_xx / sinx
             + dy_tt / sinx ** 2,
-            (-(m + 1) * (m + 2) * torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** (m)) * torch.cos(
-                m * x[:, 1:] - 0.0 * m) - 2 * torch.cos(x[:, :1]))
-            - (-(m) * (m + 1) * torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** (m - 1)) * torch.cos(
-                (m - 1) * x[:, 1:] - 0.0 * m) - 2 * torch.cos(x[:, :1]))
+             
+#             (-(m + 1) * (m + 2) * torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** (m)) * torch.cos(m * x[:, 1:] - 0.0 * m) )
+            (-(m + 1) * (m + 2) * torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** (m)) * torch.cos(m * x[:, 1:] - 0.0 * m) - 2 * torch.cos(x[:, :1]))- (-(m) * (m + 1) * torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** (m - 1)) * torch.cos((m - 1) * x[:, 1:] - 0.0 * m) - 2 * torch.cos(x[:, :1]))
+#             -(m + 1) * (m + 2) * (-3 * torch.sin(x[:, :1]) * torch.cos(x[:, :1]) / 1.5)
         )
 
     def bound_condition(self, xx, yy):
@@ -227,11 +229,9 @@ class Problem_Sphere_Poisson(Problem):
     def set_groud_truth(self):
         m = self.m
 
+    ## why + torch.cos(x[:, :1])??
         def fun(x):
-            return (torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** m) * torch.cos(
-                m * x[:, 1:]) + torch.cos(x[:, :1])) \
-                   - (torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** (m - 1)) * torch.cos(
-                (m - 1) * x[:, 1:]) + torch.cos(x[:, :1]))
-
+#             return (torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** m) * torch.cos(m * x[:, 1:]))
+            return (torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** m) * torch.cos(m * x[:, 1:]) + torch.cos(x[:, :1])) - (torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** (m - 1)) * torch.cos((m - 1) * x[:, 1:]) + torch.cos(x[:, :1]))
         self.ground_truth = fun
         return fun
