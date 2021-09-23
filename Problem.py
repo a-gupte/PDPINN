@@ -160,6 +160,7 @@ class Problem_Sphere_Poisson(Problem):
         return lhs, rhs
 
     def bound_condition(self, xx, yy):
+        print(xx)
         return self.ground_truth(xx), yy
 
     def init_condition(self, xx, yy):
@@ -167,8 +168,8 @@ class Problem_Sphere_Poisson(Problem):
 
     def set_groud_truth(self):
         m = self.m
-        def fun(x):
-            return (torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** m) * torch.cos(m * x[:, 1:]))
-            # return (torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** m) * torch.cos(m * x[:, 1:]) + torch.cos(x[:, :1])) - (torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** (m - 1)) * torch.cos((m - 1) * x[:, 1:]) + torch.cos(x[:, :1]))
-        self.ground_truth = fun
-        return fun
+        def func(x):
+            theta, phi = x[:, 0:1], x[:, 1:]
+            return true_solution(theta, phi)
+        self.ground_truth = func
+        return func
