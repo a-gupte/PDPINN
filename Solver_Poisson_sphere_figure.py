@@ -7,9 +7,10 @@ from Net import Sphere_Net, SPH_Sphere_Net
 import seaborn as sns
 import matplotlib.pyplot as plt
 import math
+from spherical_harmonics import *
 
 torch.manual_seed(0)
-maxiter = 1001
+maxiter = 126
 problem = Problem_Sphere_Poisson()
 
 
@@ -112,7 +113,6 @@ def construct_model(net):
 
     return Poisson1dModel()
 
-
 fig2 = plt.figure(constrained_layout=False, figsize=(8, 5))
 grid = fig2.add_gridspec(2, 3)
 ax = [[None, None], [None, None]]
@@ -133,6 +133,19 @@ pdpinn_model.train()
 pdpinn_model.plot(pdpinn_model.net, ax[0][0])
 pdpinn_model.post_process(ax[0][1])
 
+weidu = torch.linspace(0, math.pi, 200, requires_grad=False)
+jingdu = torch.linspace(0, 2 * math.pi, 400, requires_grad=False)
+weidu, jingdu = torch.meshgrid(weidu, jingdu)
+location = torch.cat([weidu.reshape(-1, 1), jingdu.reshape(-1, 1)], dim=1)
+value = true_solution(location[:, 0:1], location[:, 1:])
+value = value.reshape((200, 400))
+if ax is None:
+    _, ax = plt.subplots(1, 1, figsize=(8, 6))
+sns.set()
+sns.heatmap(value.detach().numpy(), ax=ax[1][0], vmin=-0.5, vmax=0.5, cbar=False)
+ax[1][0].set_xticks([])
+ax[1][0].set_yticks([])
+
 # for i, net in enumerate(net_table):
 #     print('{}-th net'.format(i))
 #     model = construct_model(net)
@@ -140,8 +153,9 @@ pdpinn_model.post_process(ax[0][1])
 #     model.plot(model.net, ax[i][0])
 #     model.post_process(ax[i][1])
 
-ax[0][0].set_ylabel('Sphere-PINN')
-ax[1][0].set_ylabel('Sphere-PINN-PD')
+ax[0][0].set_ylabel('Sphere-PINN-PD')
+# ax[1][0].set_ylabel('Sphere-PINN-PD')
+ax[1][0].set_ylabel('true solution')
 ax[1][0].set_xlabel('Iteration 2000')
 ax[1][1].set_xlabel('Loss')
 plt.show()
