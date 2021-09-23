@@ -10,7 +10,7 @@ import math
 from spherical_harmonics import *
 
 torch.manual_seed(0)
-maxiter = 126
+maxiter = 501
 problem = Problem_Sphere_Poisson()
 
 
@@ -22,7 +22,7 @@ def construct_model(net):
         def __init__(self):
             super().__init__(problem=problem, net=net, maxiter=maxiter)
 
-        def inner_sample(self, num=200):
+        def inner_sample(self, num=1000):
             x = torch.randn(num, 3)
             x = x / (torch.norm(x, dim=1).reshape((-1, 1)))
             weidu = torch.acos(x[:, 2:3])
@@ -47,7 +47,7 @@ def construct_model(net):
             if ax is None:
                 _, ax = plt.subplots(1, 1, figsize=(8, 6))
             sns.set()
-            sns.heatmap(value.detach().numpy(), ax=ax, vmin=-0.5, vmax=0.5, cbar=False)
+            sns.heatmap(value.detach().numpy(), ax=ax, vmin=-0.5, vmax=0.5, cbar=True)
             ax.set_xticks([])
             ax.set_yticks([])
 
@@ -123,8 +123,8 @@ ax[1][0] = fig2.add_subplot(grid[1, :2])
 ax[1][1] = fig2.add_subplot(grid[1, 2])
 
 basis = SPHBasis()
-pdpinn_net = SPH_Sphere_Net([3, 50, 50, 50, 16], basis)
-# net0 = Sphere_Net([3, 50, 50, 50, 16, 1])
+pdpinn_net = SPH_Sphere_Net([3, 100, 50, 50, 16], basis)
+# pdpinn_net = Sphere_Net([3, 50, 50, 50, 16, 1])
 
 net_table = [pdpinn_net]
 
@@ -142,7 +142,7 @@ value = value.reshape((200, 400))
 if ax is None:
     _, ax = plt.subplots(1, 1, figsize=(8, 6))
 sns.set()
-sns.heatmap(value.detach().numpy(), ax=ax[1][0], vmin=-0.5, vmax=0.5, cbar=False)
+sns.heatmap(value.detach().numpy(), ax=ax[1][0], vmin=-0.5, vmax=0.5, cbar=True)
 ax[1][0].set_xticks([])
 ax[1][0].set_yticks([])
 
@@ -156,6 +156,6 @@ ax[1][0].set_yticks([])
 ax[0][0].set_ylabel('Sphere-PINN-PD')
 # ax[1][0].set_ylabel('Sphere-PINN-PD')
 ax[1][0].set_ylabel('true solution')
-ax[1][0].set_xlabel('Iteration 2000')
+# ax[1][0].set_xlabel('')
 ax[1][1].set_xlabel('Loss')
 plt.show()

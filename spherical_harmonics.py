@@ -50,4 +50,7 @@ def Y_3_0(theta, phi):
     return sqrt(7.0/16/pi) * z * (2*z**2 - 3*x**2 - 3*y**2)
 
 def true_solution(theta, phi):
-    return Y_2_2(theta, phi)
+    return - Y_2_2(theta, phi)
+
+def rhs_function(theta, phi):
+    return 6 * Y_2_2(theta, phi)

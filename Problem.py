@@ -155,11 +155,8 @@ class Problem_Sphere_Poisson(Problem):
         dy_dphi2 = torch.autograd.grad(sum(dy_dphi[:, :]), thetaphi, retain_graph=True, create_graph=True)[0][:, 1:]
 
         lhs = dsintheta_dy_dtheta2/sintheta + dy_dphi2/sintheta**2
-        rhs = true_solution(theta, phi)
-        # rhs = (-(m + 1) * (m + 2) * torch.cos(theta) * (torch.sin(theta) ** (m)) * torch.cos(\
-        #     m * phi - 0.0 * m) - 2 * torch.cos(theta))\
-        #     - (-(m) * (m + 1) * torch.cos(theta) * (torch.sin(theta) ** (m - 1)) * torch.cos(\
-        #         (m - 1) * phi - 0.0 * m) - 2 * torch.cos(theta))
+        # rhs = true_solution(theta, phi)
+        rhs = rhs_function(theta, phi)
         return lhs, rhs
 
     def bound_condition(self, xx, yy):
@@ -170,10 +167,8 @@ class Problem_Sphere_Poisson(Problem):
 
     def set_groud_truth(self):
         m = self.m
-
-    ## why + torch.cos(x[:, :1])??
         def fun(x):
-#             return (torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** m) * torch.cos(m * x[:, 1:]))
-            return (torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** m) * torch.cos(m * x[:, 1:]) + torch.cos(x[:, :1])) - (torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** (m - 1)) * torch.cos((m - 1) * x[:, 1:]) + torch.cos(x[:, :1]))
+            return (torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** m) * torch.cos(m * x[:, 1:]))
+            # return (torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** m) * torch.cos(m * x[:, 1:]) + torch.cos(x[:, :1])) - (torch.cos(x[:, :1]) * (torch.sin(x[:, :1]) ** (m - 1)) * torch.cos((m - 1) * x[:, 1:]) + torch.cos(x[:, :1]))
         self.ground_truth = fun
         return fun
