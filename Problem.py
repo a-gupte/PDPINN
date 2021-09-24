@@ -136,14 +136,12 @@ class Problem_Sphere_Poisson(Problem):
     def __init__(self):
         super().__init__()
         self.groud_truth = None
-        self.m = 7
         self.set_groud_truth()
 
     def __str__(self):
         return "dy_xx+d_y_yy =  -0.25 * torch.sin(0.5 * xx[:, 0:1]) - 0.49 * torch.sin(0.7 * xx[:, 1:])"
 
     def pde(self, thetaphi, y):
-        m = self.m
         theta, phi = thetaphi[:, 0:1], thetaphi[:, 1:]
 
         dy_dthetaphi = torch.autograd.grad(sum(y[:, :]), thetaphi, retain_graph=True, create_graph=True)[0]
@@ -160,14 +158,12 @@ class Problem_Sphere_Poisson(Problem):
         return lhs, rhs
 
     def bound_condition(self, xx, yy):
-        print(xx)
         return self.ground_truth(xx), yy
 
     def init_condition(self, xx, yy):
         return torch.tensor([0.]), torch.tensor([0.])
 
     def set_groud_truth(self):
-        m = self.m
         def func(x):
             theta, phi = x[:, 0:1], x[:, 1:]
             return true_solution(theta, phi)

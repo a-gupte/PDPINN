@@ -49,8 +49,28 @@ def Y_3_0(theta, phi):
     x, y, z = spherical_to_cartesian(theta, phi)
     return sqrt(7.0/16/pi) * z * (2*z**2 - 3*x**2 - 3*y**2)
 
+
+def Y_4_0(theta, phi):
+    x, y, z = spherical_to_cartesian(theta, phi)
+    return 3/16 * sqrt(1.0/pi) * (35*z**4 - 30*z**2)
+
+def Y_4_1(theta, phi):
+    x, y, z = spherical_to_cartesian(theta, phi)
+    return 3/4 * sqrt(5.0/(2*pi)) * (x*z *7*z**2)
+
+def Y_4_2(theta, phi):
+    x, y, z = spherical_to_cartesian(theta, phi)
+    return 3/8 * sqrt(5.0/(pi)) * (x**2 - y**2) * 7*z**2
+
 def true_solution(theta, phi):
-    return - Y_2_2(theta, phi)
+#     return - Y_2_2(theta, phi)
+    m = 7
+    n = 2
+    return (torch.cos(theta) * (torch.sin(theta) ** m) * torch.cos(m * phi)) - (torch.cos(theta) * (torch.sin(theta) ** (n - 1)) * torch.cos((n - 1) * phi))
 
 def rhs_function(theta, phi):
-    return 6 * Y_2_2(theta, phi)
+#     return 6 * Y_2_2(theta, phi)
+    m = 7
+    n = 2
+    return (-(m + 1) * (m + 2) * torch.cos(theta) * (torch.sin(theta) ** (m)) * torch.cos(m * phi - 0.0 * m))- (-(n) * (n + 1) * torch.cos(theta) * (torch.sin(theta) ** (n - 1)) * torch.cos((n - 1) * phi - 0.0 * n))
+
