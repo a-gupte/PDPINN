@@ -4,6 +4,9 @@ from math import pi
 from math import sqrt
 
 ## return the real spherical harmonics in terms of theta, phi for spherical harmonic for l=0, 1, ... and m = -l, -l+1, ..., l-1, l
+# theta = data[:, :1] azimuthal angle
+# phi = data[:, 1:] polar angle
+
 def spherical_to_cartesian(theta, phi):
     # x = r sin(theta) cos(phi)
     # y = r sin(theta) sin(phi)
@@ -63,14 +66,14 @@ def Y_4_2(theta, phi):
     return 3/8 * sqrt(5.0/(pi)) * (x**2 - y**2) * 7*z**2
 
 def true_solution(theta, phi):
-#     return - Y_2_2(theta, phi)
-    m = 7
-    n = 2
-    return (torch.cos(theta) * (torch.sin(theta) ** m) * torch.cos(m * phi)) - (torch.cos(theta) * (torch.sin(theta) ** (n - 1)) * torch.cos((n - 1) * phi))
+    return - Y_2_2(theta, phi) - Y_4_2(theta, phi)
+    # m = 7
+    # n = 2
+    # return (torch.cos(theta) * (torch.sin(theta) ** m) * torch.cos(m * phi)) - (torch.cos(theta) * (torch.sin(theta) ** (n - 1)) * torch.cos((n - 1) * phi))
 
 def rhs_function(theta, phi):
-#     return 6 * Y_2_2(theta, phi)
-    m = 7
-    n = 2
-    return (-(m + 1) * (m + 2) * torch.cos(theta) * (torch.sin(theta) ** (m)) * torch.cos(m * phi - 0.0 * m))- (-(n) * (n + 1) * torch.cos(theta) * (torch.sin(theta) ** (n - 1)) * torch.cos((n - 1) * phi - 0.0 * n))
+    return 6 * Y_2_2(theta, phi) + 20 * Y_4_2(theta, phi)
+    # m = 7
+    # n = 2
+    # return (-(m + 1) * (m + 2) * torch.cos(theta) * (torch.sin(theta) ** (m)) * torch.cos(m * phi - 0.0 * m))- (-(n) * (n + 1) * torch.cos(theta) * (torch.sin(theta) ** (n - 1)) * torch.cos((n - 1) * phi - 0.0 * n))
 
