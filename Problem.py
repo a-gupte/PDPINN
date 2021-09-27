@@ -153,7 +153,6 @@ class Problem_Sphere_Poisson(Problem):
         dy_dphi2 = torch.autograd.grad(sum(dy_dphi[:, :]), thetaphi, retain_graph=True, create_graph=True)[0][:, 1:]
 
         lhs = dsintheta_dy_dtheta2/sintheta + dy_dphi2/sintheta**2
-        # rhs = true_solution(theta, phi)
         rhs = rhs_function(theta, phi)
         return lhs, rhs
 
