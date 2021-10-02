@@ -10,7 +10,7 @@ import math
 from spherical_harmonics import *
 
 torch.manual_seed(0)
-maxiter = 501
+maxiter = 101
 problem = Problem_Sphere_Poisson()
 
 
@@ -23,13 +23,19 @@ def construct_model(net):
             super().__init__(problem=problem, net=net, maxiter=maxiter)
 
         def inner_sample(self, num=1000):
-            x = torch.randn(num, 3)
-            x = x / (torch.norm(x, dim=1).reshape((-1, 1)))
-            weidu = torch.acos(x[:, 2:3])
-            jingdu = torch.atan(x[:, :1] / x[:, 1:2]) + math.pi / 2
-            jingdu[:num // 2, 0] = jingdu[:num // 2, 0] + math.pi
-            x = torch.cat([weidu, jingdu], dim=1)
-            return x
+            N = 25
+            weidu = torch.linspace(0.001, math.pi, N, requires_grad=False)
+            jingdu = torch.linspace(0.001, 2 * math.pi, 2*N, requires_grad=False)
+            weidu, jingdu = torch.meshgrid(weidu, jingdu)
+            location = torch.cat([weidu.reshape(-1, 1), jingdu.reshape(-1, 1)], dim=1)
+            return location
+            # x = torch.randn(num, 3)
+            # x = x / (torch.norm(x, dim=1).reshape((-1, 1)))
+            # weidu = torch.acos(x[:, 2:3])
+            # jingdu = torch.atan(x[:, :1] / x[:, 1:2]) + math.pi / 2
+            # jingdu[:num // 2, 0] = jingdu[:num // 2, 0] + math.pi
+            # x = torch.cat([weidu, jingdu], dim=1)
+            # return x
 
         def bc_sample(self):
             return torch.tensor([[1., 1.]])
@@ -123,7 +129,7 @@ ax[1][0] = fig2.add_subplot(grid[1, :2])
 ax[1][1] = fig2.add_subplot(grid[1, 2])
 
 basis = SPHBasis()
-pdpinn_net = SPH_Sphere_Net([3, 100, 50, 50, 16], basis)
+pdpinn_net = SPH_Sphere_Net([3, 200, 100, 50, 16], basis)
 # pdpinn_net = Sphere_Net([3, 50, 50, 50, 16, 1])
 
 net_table = [pdpinn_net]
