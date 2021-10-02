@@ -137,7 +137,7 @@ class Model(metaclass=abc.ABCMeta):
         self.net.eval()
 
     @abc.abstractmethod
-    def inner_sample(self):
+    def inner_sample(self, sampling_method):
         pass
 
     @abc.abstractmethod

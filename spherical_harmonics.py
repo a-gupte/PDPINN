@@ -65,15 +65,37 @@ def Y_4_2(theta, phi):
     x, y, z = spherical_to_cartesian(theta, phi)
     return 3/8 * sqrt(5.0/(pi)) * (x**2 - y**2) * 7*z**2
 
-def true_solution(theta, phi):
-    return - Y_2_2(theta, phi) - Y_4_2(theta, phi)
-    # m = 7
-    # n = 2
-    # return (torch.cos(theta) * (torch.sin(theta) ** m) * torch.cos(m * phi)) - (torch.cos(theta) * (torch.sin(theta) ** (n - 1)) * torch.cos((n - 1) * phi))
+#---------------------- PAPER --------------------------
+def rhs_function_paper(theta, phi):
+    m = 7
+    return (-(m + 1) * (m + 2) * torch.cos(theta) * (torch.sin(theta) ** (m)) * torch.cos(m * phi - 0.0 * m))- (-(m) * (m + 1) * torch.cos(theta) * (torch.sin(theta) ** (m - 1)) * torch.cos((m - 1) * phi - 0.0 * m))
+    
+def true_solution_paper(theta, phi):
+    m = 7    
+    return (torch.cos(theta) * (torch.sin(theta) ** m) * torch.cos(m * phi)) - (torch.cos(theta) * (torch.sin(theta) ** (m - 1)) * torch.cos((m - 1) * phi))
+#---------------------- ONLY LOW FREQ --------------------------
+def rhs_function_low_freq(theta, phi):
+    return 6 * Y_2_2(theta, phi)
+
+def true_solution_low_freq(theta, phi):
+    return - Y_2_2(theta, phi)
+
+#---------------------- LOW FREQ + HIGH FREQ --------------------------
+def rhs_function_low_high_freq(theta, phi):
+    m = 7
+    n = 2
+    return (-(m + 1) * (m + 2) * torch.cos(theta) * (torch.sin(theta) ** (m)) * torch.cos(m * phi - 0.0 * m))- (-(n) * (n + 1) * torch.cos(theta) * (torch.sin(theta) ** (n - 1)) * torch.cos((n - 1) * phi - 0.0 * n))
+
+def true_solution_low_high_freq(theta, phi):
+    m = 7
+    n = 2
+    return (torch.cos(theta) * (torch.sin(theta) ** m) * torch.cos(m * phi)) - (torch.cos(theta) * (torch.sin(theta) ** (n - 1)) * torch.cos((n - 1) * phi))
+
+#---------------------- MODIFY CODE BELOW TO CHANGE rhs_function & true_solution -------------------------- 
 
 def rhs_function(theta, phi):
-    return 6 * Y_2_2(theta, phi) + 20 * Y_4_2(theta, phi)
-    # m = 7
-    # n = 2
-    # return (-(m + 1) * (m + 2) * torch.cos(theta) * (torch.sin(theta) ** (m)) * torch.cos(m * phi - 0.0 * m))- (-(n) * (n + 1) * torch.cos(theta) * (torch.sin(theta) ** (n - 1)) * torch.cos((n - 1) * phi - 0.0 * n))
+    return rhs_function_low_high_freq(theta, phi)
+
+def true_solution(theta, phi):
+    return true_solution_low_high_freq(theta, phi)
 
