@@ -73,6 +73,7 @@ def rhs_function_paper(theta, phi):
 def true_solution_paper(theta, phi):
     m = 7    
     return (torch.cos(theta) * (torch.sin(theta) ** m) * torch.cos(m * phi)) - (torch.cos(theta) * (torch.sin(theta) ** (m - 1)) * torch.cos((m - 1) * phi))
+
 #---------------------- ONLY LOW FREQ --------------------------
 def rhs_function_low_freq(theta, phi):
     return 6 * Y_2_2(theta, phi)
@@ -94,8 +95,8 @@ def true_solution_low_high_freq(theta, phi):
 #---------------------- MODIFY CODE BELOW TO CHANGE rhs_function & true_solution -------------------------- 
 
 def rhs_function(theta, phi):
-    return rhs_function_low_high_freq(theta, phi)
+    return rhs_function_paper(theta, phi)
 
 def true_solution(theta, phi):
-    return true_solution_low_high_freq(theta, phi)
+    return true_solution_paper(theta, phi)
 
