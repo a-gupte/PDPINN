@@ -4,27 +4,22 @@ from Problem import Problem
 import matplotlib.pyplot as plt
 import numpy as np
 
-# class HsLoss(torch.nn.Module):
-#     def __init__(self, weight=None, size_average=True):
-#         super(HsLoss, self).__init__()
+class HsLoss(torch.nn.Module):
+    def __init__(self, weight=None, size_average=True):
+        super(HsLoss, self).__init__()
  
-#     def forward(self, y_pred, y_true):        
-#         u = y_pred - y_true 
-#         n = u.shape[0]
-#         s = 1
-        
-#         dft_matrix = np.fft.fft(np.eye(n))
-#         inverse_dft_matrix = np.fft.ifft(np.eye(n))
-#         hs_weight_matrix = np.diag([(1 + i ** 2)**(s/2) for i in range(n)])
-#         result = np.matmul(inverse_dft_matrix, np.matmul(hs_weight_matrix, dft_matrix))
-#         hermitian_adjoint = np.matrix(result)
-#         P = np.array(np.matmul(hermitian_adjoint.getH(), result))
-    
-#         ## # SciPy's L-BFGS-B Fortran implementation requires and returns float64
-#         P = torch.tensor(P, requires_grad=False)
-#         P = P.to(torch.float32)
-#         hs_loss = 1.0/n * torch.matmul(torch.transpose(u,0,1), torch.matmul(P, u))
-#         return hs_loss
+    def forward(self, y_pred, y_true):        
+        u = y_pred - y_true 
+        n = u.shape[0]
+        s = 1
+        coefficients = SHExpandDH(u.detach().numpy(), sampling=2)
+        nl = coefficients.shape[1]
+        ls = np.arange(nl)[:10]
+        power_per_l = spectrum(coefficients)[:10]
+        result = 0
+        for i in power_per_l:
+            result += power_per_l * (1 + eig) ** s
+        return result
 
 class Model(metaclass=abc.ABCMeta):
     @abc.abstractmethod
