@@ -154,6 +154,18 @@ class Problem_Sphere_Poisson(Problem):
 
         lhs = dsintheta_dy_dtheta2/sintheta + dy_dphi2/sintheta**2
         rhs = rhs_function(theta, phi)
+        # print('size of lhs, rhs', lhs.size(), rhs.size())
+        # print('theta', theta.size())
+        # print('phi', phi.size())
+        # print('dy_dthetaphi', dy_dthetaphi.size())
+        # print('dy_dtheta', dy_dtheta.size())
+        # print('dy_dphi', dy_dphi.size())
+        # print('sintheta', sintheta.size())
+        # print('dsintheta_dy_dtheta2', dsintheta_dy_dtheta2.size())
+        # print('dy_dphi2', dy_dphi2.size())
+        lhs = lhs.reshape([15, 30])
+        rhs = rhs.reshape([15, 30])
+        # print('size of lhs, rhs', lhs.size(), rhs.size())
         return lhs, rhs
 
     def bound_condition(self, xx, yy):

@@ -8,30 +8,64 @@ from my_ducc0_wrapper import *
 from pyshtools.spectralanalysis import spectrum
 
 
-class HsLoss(torch.nn.Module):
-    def __init__(self, weight=None, size_average=True):
-        super(HsLoss, self).__init__()
+# class HsLoss(torch.nn.Module):
+#     def __init__(self, weight=None, size_average=True):
+#         super(HsLoss, self).__init__()
  
-    def forward(self, y_pred, y_true):        
-        u = y_pred - y_true 
-        n = u.shape[0]
-        s = 1
+#     def forward(self, y_pred, y_true):        
+#         u = y_pred - y_true 
+#         n = u.shape[0]
+#         s = 1
         
-        coefficients = SHExpandDH(u.detach().numpy(), sampling=2, flag = False)
-        nl = coefficients.shape[1]
-        ls = np.arange(nl)[:10]
-        power_per_l = spectrum(coefficients)[:10]
-        result = 0
-        for eig in power_per_l:
-            result += power_per_l * (1 + eig) ** s
-        return result
+#         coefficients = SHExpandDH(u.detach().numpy(), sampling=2, flag = False)
+#         nl = coefficients.shape[1]
+#         ls = np.arange(nl)[:10]
+#         power_per_l = spectrum(coefficients)[:10]
+#         result = 0
+#         for eig in power_per_l:
+#             result += power_per_l * (1 + eig) ** s
+#         return result
     
-    def gradient(self, y_pred, y_true):   
-        u = y_pred - y_true 
+#     def gradient(self, y_pred, y_true):   
+#         u = y_pred - y_true 
+#         n = u.shape[0]
+#         s = 1
+#         # If flag = True: compute adjoint
+#         adjoint_coefficients = SHExpandDH(u.detach().numpy(), sampling=2, flag = True)
+
+class Hs_loss(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, input, target):
+        
+        u = input - target
+        u = u.reshape([15, 30])
         n = u.shape[0]
         s = 1
-        # If flag = True: compute adjoint
-        adjoint_coefficients = SHExpandDH(u.detach().numpy(), sampling=2, flag = True)
+        print('u', u.shape)
+        if not isinstance(u, np.ndarray):
+            u = u.detach().numpy()
+        clm = SHExpandDH(u, sampling=2, flag=False)
+        nl = clm.shape[1]
+        ls = np.arange(nl)
+        power_per_l = spectrum(clm)
+        result = 0
+        for i in range(len(power_per_l)):
+            result += (1 + i**2)**s * power_per_l[i]
+        # ctx.save_for_backward(input, clm, result)
+        ctx.input = input 
+        ctx.clm = clm
+        ctx.result = result
+        ctx.target = target
+        return result
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        # input, clm, result = ctx.saved_tensors
+        # target = ctx.target
+        clm = ctx.clm
+        grad_input = 2 * SHExpandDH(np.matmul(diag, clm), sampling=2, flag=True)
+        return grad_input, None
+
 
 class Model(metaclass=abc.ABCMeta):
     @abc.abstractmethod
@@ -56,16 +90,16 @@ class Model(metaclass=abc.ABCMeta):
         self.opt = torch.optim.Adam(self.net.parameters(), lr=0.001)
 
     def set_pde_loss_f(self):
-        self.pde_loss_f = torch.nn.MSELoss()
-#         self.pde_loss_f = HsLoss()
+        # self.pde_loss_f = torch.nn.MSELoss()
+        self.pde_loss_f = Hs_loss.apply
 
     def set_bc_loss_f(self):
         self.bc_loss_f = torch.nn.MSELoss()
-#         self.bc_loss_f = HsLoss()
+        # self.bc_loss_f = Hs_loss.apply
 
     def set_init_loss_f(self):
         self.init_loss_f = torch.nn.MSELoss()
-#         self.init_loss_f = HsLoss()
+        # self.init_loss_f = Hs_loss.apply
 
     def train_epoch(self):
         pass
