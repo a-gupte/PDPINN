@@ -3,6 +3,10 @@ import torch
 from Problem import Problem
 import matplotlib.pyplot as plt
 import numpy as np
+import my_ducc0_wrapper
+from my_ducc0_wrapper import *
+from pyshtools.spectralanalysis import spectrum
+
 
 class HsLoss(torch.nn.Module):
     def __init__(self, weight=None, size_average=True):
@@ -12,14 +16,22 @@ class HsLoss(torch.nn.Module):
         u = y_pred - y_true 
         n = u.shape[0]
         s = 1
-        coefficients = SHExpandDH(u.detach().numpy(), sampling=2)
+        
+        coefficients = SHExpandDH(u.detach().numpy(), sampling=2, flag = False)
         nl = coefficients.shape[1]
         ls = np.arange(nl)[:10]
         power_per_l = spectrum(coefficients)[:10]
         result = 0
-        for i in power_per_l:
+        for eig in power_per_l:
             result += power_per_l * (1 + eig) ** s
         return result
+    
+    def gradient(self, y_pred, y_true):   
+        u = y_pred - y_true 
+        n = u.shape[0]
+        s = 1
+        # If flag = True: compute adjoint
+        adjoint_coefficients = SHExpandDH(u.detach().numpy(), sampling=2, flag = True)
 
 class Model(metaclass=abc.ABCMeta):
     @abc.abstractmethod
