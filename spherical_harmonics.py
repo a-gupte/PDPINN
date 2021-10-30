@@ -81,6 +81,13 @@ def rhs_function_low_freq(theta, phi):
 def true_solution_low_freq(theta, phi):
     return - Y_2_2(theta, phi)
 
+#---------------------- FREQs 2 and 4 --------------------------
+def rhs_function_freq_2_4(theta, phi):
+    return 6 * Y_2_2(theta, phi) + 20 * Y_4_2(theta, phi)
+
+def true_solution_freq_2_4(theta, phi):
+    return - Y_2_2(theta, phi) - Y_4_2(theta, phi)    
+
 #---------------------- LOW FREQ + HIGH FREQ --------------------------
 def rhs_function_low_high_freq(theta, phi):
     m = 7
@@ -95,8 +102,8 @@ def true_solution_low_high_freq(theta, phi):
 #---------------------- MODIFY CODE BELOW TO CHANGE rhs_function & true_solution -------------------------- 
 
 def rhs_function(theta, phi):
-    return rhs_function_paper(theta, phi)
+    return rhs_function_freq_2_4(theta, phi)
 
 def true_solution(theta, phi):
-    return true_solution_paper(theta, phi)
+    return true_solution_freq_2_4(theta, phi)
 

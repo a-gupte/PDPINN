@@ -36,34 +36,43 @@ from pyshtools.spectralanalysis import spectrum
 class Hs_loss(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input, target):
-        
+        ## Check that these are the arguments of a custom loss function.
+
         u = input - target
-        u = u.reshape([15, 30])
+        u = u.reshape([20, 40])
         n = u.shape[0]
-        s = 1
-        print('u', u.shape)
+        s = 0
+        # print('u', u.shape)
         if not isinstance(u, np.ndarray):
             u = u.detach().numpy()
+
+        ## Maybe you want to comment out the two lines above.
+
         clm = SHExpandDH(u, sampling=2, flag=False)
-        nl = clm.shape[1]
-        ls = np.arange(nl)
+        # nl = clm.shape[1]
+        # ls = np.arange(nl)
         power_per_l = spectrum(clm)
         result = 0
         for i in range(len(power_per_l)):
-            result += (1 + i**2)**s * power_per_l[i]
+            result += (1 + i*(i+1))**s * power_per_l[i]
         # ctx.save_for_backward(input, clm, result)
         ctx.input = input 
         ctx.clm = clm
         ctx.result = result
         ctx.target = target
+        ctx.s = s
         return result
 
     @staticmethod
     def backward(ctx, grad_output):
         # input, clm, result = ctx.saved_tensors
         # target = ctx.target
+        s = clm.s
         clm = ctx.clm
+        daig = np.diag([(1 + i*(i+1))**s for i in range(clm.shape[1])])
+        ## Check the length of the array
         grad_input = 2 * SHExpandDH(np.matmul(diag, clm), sampling=2, flag=True)
+        print(grad_input)
         return grad_input, None
 
 
@@ -87,11 +96,11 @@ class Model(metaclass=abc.ABCMeta):
         self.set_init_loss_f()
 
     def set_optimizer(self):
-        self.opt = torch.optim.Adam(self.net.parameters(), lr=0.001)
+        self.opt = torch.optim.Adam(self.net.parameters(), lr=0.01)
 
     def set_pde_loss_f(self):
-        # self.pde_loss_f = torch.nn.MSELoss()
-        self.pde_loss_f = Hs_loss.apply
+        self.pde_loss_f = torch.nn.MSELoss()
+        # self.pde_loss_f = Hs_loss.apply
 
     def set_bc_loss_f(self):
         self.bc_loss_f = torch.nn.MSELoss()

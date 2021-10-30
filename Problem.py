@@ -163,8 +163,8 @@ class Problem_Sphere_Poisson(Problem):
         # print('sintheta', sintheta.size())
         # print('dsintheta_dy_dtheta2', dsintheta_dy_dtheta2.size())
         # print('dy_dphi2', dy_dphi2.size())
-        lhs = lhs.reshape([15, 30])
-        rhs = rhs.reshape([15, 30])
+        # lhs = lhs.reshape([200, ])
+        # rhs = rhs.reshape([15, 30])
         # print('size of lhs, rhs', lhs.size(), rhs.size())
         return lhs, rhs
 
