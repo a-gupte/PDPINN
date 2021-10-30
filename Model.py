@@ -7,7 +7,7 @@ import my_ducc0_wrapper
 from my_ducc0_wrapper import *
 from pyshtools.spectralanalysis import spectrum
 
-
+N = 20 
 # class HsLoss(torch.nn.Module):
 #     def __init__(self, weight=None, size_average=True):
 #         super(HsLoss, self).__init__()
@@ -37,7 +37,8 @@ class Hs_loss(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input, target):
         ## Check that these are the arguments of a custom loss function.
-
+        
+        
         u = input - target
         u = u.reshape([20, 40])
         n = u.shape[0]
@@ -47,7 +48,7 @@ class Hs_loss(torch.autograd.Function):
             u = u.detach().numpy()
 
         ## Maybe you want to comment out the two lines above.
-
+        
         clm = SHExpandDH(u, sampling=2, flag=False)
         # nl = clm.shape[1]
         # ls = np.arange(nl)
@@ -55,25 +56,43 @@ class Hs_loss(torch.autograd.Function):
         result = 0
         for i in range(len(power_per_l)):
             result += (1 + i*(i+1))**s * power_per_l[i]
-        # ctx.save_for_backward(input, clm, result)
+#         ctx.save_for_backward(input, torch.tensor(clm), torch.tensor(result))
         ctx.input = input 
         ctx.clm = clm
         ctx.result = result
         ctx.target = target
         ctx.s = s
-        return result
+        return torch.tensor(result)
 
     @staticmethod
     def backward(ctx, grad_output):
-        # input, clm, result = ctx.saved_tensors
-        # target = ctx.target
-        s = clm.s
+#         input, clm, result = ctx.saved_tensors
+        target = ctx.target
+        s = ctx.s
         clm = ctx.clm
-        daig = np.diag([(1 + i*(i+1))**s for i in range(clm.shape[1])])
+        
+        diag = np.diag([(1 + i*(i+1))**s for i in range(clm.shape[1])])
         ## Check the length of the array
-        grad_input = 2 * SHExpandDH(np.matmul(diag, clm), sampling=2, flag=True)
+        print(diag.shape)
+        print(clm.shape)
+        print(clm[0])
+        print(clm[1])
+        print(diag)
+           
+        clm_concat = np.hstack((clm[1][:,::-1], clm[0]))
+#         padding before sht?                   
+#         clm_concat = np.hstack((np.array( np.zeros((int(N/2),int(N/2)))), clm[1][:,::-1], clm[0], np.array(np.zeros((int(N/2),int(N/2)))) ))
+        print("CLM!!")
+        print(clm_concat.shape)
+        print(np.matmul(diag, clm_concat).shape)
+        grad_input = 2 * SHExpandDH(np.matmul(diag, clm_concat), sampling=2, flag=True)
+#         grad_input = np.pad(grad_input, ((3, 2), (5, 5)), 'constant', constant_values=(0,0))
+        grad_input = np.hstack((grad_input[1][:,::-1], grad_input[0] ))    
+        print(grad_input.shape)
+        
+        print(grad_input.shape)
         print(grad_input)
-        return grad_input, None
+        return torch.tensor(grad_input), None
 
 
 class Model(metaclass=abc.ABCMeta):
@@ -99,8 +118,8 @@ class Model(metaclass=abc.ABCMeta):
         self.opt = torch.optim.Adam(self.net.parameters(), lr=0.01)
 
     def set_pde_loss_f(self):
-        self.pde_loss_f = torch.nn.MSELoss()
-        # self.pde_loss_f = Hs_loss.apply
+#         self.pde_loss_f = torch.nn.MSELoss()
+        self.pde_loss_f = Hs_loss.apply
 
     def set_bc_loss_f(self):
         self.bc_loss_f = torch.nn.MSELoss()
