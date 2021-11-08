@@ -79,9 +79,14 @@ def _extract_alm(alm, lmax, norm, csphase):
     _apply_norm(alm, lmax, norm, csphase, True)
     return _ralm2cilm(alm, lmax)
 
-def _analyze_DH_adjoint(map, lmax):
-    alm = ducc0.sht.experimental.adjoint_synthesis_2d(
-        map=map.reshape((1, map.shape[0], map.shape[1])),
+def _analyze_DH_adjoint(alm, lmax):
+    # ducc0.sht.experimental.adjoint_analysis_2d(*, alm: numpy.ndarray, 
+    #     spin: int, lmax: int, geometry: str, ntheta: object = None, 
+    #     nphi: object = None, mmax: object = None, nthreads: int = 1, 
+    #     map: object = None) → numpy.ndarray
+    alm = _np.array(alm, dtype=_np.complex128)
+    alm = ducc0.sht.experimental.adjoint_analysis_2d(
+        alm=alm,
         spin=0,
         lmax=lmax,
         geometry="DH",
@@ -100,14 +105,18 @@ def _analyze_DH(map, lmax):
     return alm[0]
 
 def SHExpandDH(grid, norm=1, sampling=1, csphase=1, lmax_calc=None, flag = False):
-    if grid.shape[1] != sampling * grid.shape[0]:
-        raise RuntimeError("grid resolution mismatch")
-    if lmax_calc is None:
-        lmax_calc = grid.shape[0] // 2 - 1
-    if lmax_calc > (grid.shape[0] // 2 - 1):
-        raise RuntimeError("lmax_calc too high")
-    if flag:
-        alm = _analyze_DH_adjoint(grid, lmax_calc)
+    if not flag:
+        if grid.shape[1] != sampling * grid.shape[0]:
+            raise RuntimeError("grid resolution mismatch")
+        if lmax_calc is None:
+            lmax_calc = grid.shape[0] // 2 - 1
+        if lmax_calc > (grid.shape[0] // 2 - 1):
+            raise RuntimeError("lmax_calc too high")
+        else:
+            alm = _analyze_DH(grid, lmax_calc)
+        return _extract_alm(alm, lmax_calc, norm, csphase)
     else:
-        alm = _analyze_DH(grid, lmax_calc)
-    return _extract_alm(alm, lmax_calc, norm, csphase)
+        ## grid resolution mismatch error
+        lmax_calc = grid.shape[1] * 2
+        alm = _analyze_DH_adjoint(grid, lmax_calc)
+        return _extract_alm(alm, lmax_calc, norm, csphase)

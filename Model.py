@@ -53,7 +53,7 @@ class Hs_loss(torch.autograd.Function):
         # nl = clm.shape[1]
         # ls = np.arange(nl)
         power_per_l = spectrum(clm)
-        result = 0
+        result = torch.tensor(0., dtype=torch.float64, requires_grad=True)
         for i in range(len(power_per_l)):
             result += (1 + i*(i+1))**s * power_per_l[i]
 #         ctx.save_for_backward(input, torch.tensor(clm), torch.tensor(result))
@@ -62,7 +62,7 @@ class Hs_loss(torch.autograd.Function):
         ctx.result = result
         ctx.target = target
         ctx.s = s
-        return torch.tensor(result)
+        return result
 
     @staticmethod
     def backward(ctx, grad_output):
@@ -73,24 +73,34 @@ class Hs_loss(torch.autograd.Function):
         
         diag = np.diag([(1 + i*(i+1))**s for i in range(clm.shape[1])])
         ## Check the length of the array
-        print(diag.shape)
-        print(clm.shape)
-        print(clm[0])
-        print(clm[1])
-        print(diag)
-           
-        clm_concat = np.hstack((clm[1][:,::-1], clm[0]))
+        # print(diag.shape)
+        # print(clm.shape)
+        # print(clm[0])
+        # print(clm[1])
+        # print(diag)
+
+        # clm_concat = np.hstack((clm[1][:,::-1], clm[0]))
 #         padding before sht?                   
 #         clm_concat = np.hstack((np.array( np.zeros((int(N/2),int(N/2)))), clm[1][:,::-1], clm[0], np.array(np.zeros((int(N/2),int(N/2)))) ))
-        print("CLM!!")
-        print(clm_concat.shape)
-        print(np.matmul(diag, clm_concat).shape)
-        grad_input = 2 * SHExpandDH(np.matmul(diag, clm_concat), sampling=2, flag=True)
+        # print("CLM!!")
+        # print(clm_concat.shape)
+        # print(np.matmul(diag, clm_concat).shape)
+
+        result = np.matmul(diag, clm)
+
+        ## clm_concat : N/2 x N
+        ## --> 2N x 4N
+        # result = np.hstack((np.zeros((2*N, int(3*N/2))), np.vstack((result, np.zeros((int(3*N/2), N)))), np.zeros((2*N, int(3*N/2)))))
+
+        grad_input = 2 * SHExpandDH(result, sampling=2, flag=True)
+        ## grad_input : N x 2N
+
 #         grad_input = np.pad(grad_input, ((3, 2), (5, 5)), 'constant', constant_values=(0,0))
         grad_input = np.hstack((grad_input[1][:,::-1], grad_input[0] ))    
-        print(grad_input.shape)
+        # print(grad_input.shape)
+        grad_input = grad_input.reshape([-1, 1])
         
-        print(grad_input.shape)
+        # print(grad_input.shape)
         print(grad_input)
         return torch.tensor(grad_input), None
 
@@ -165,7 +175,7 @@ class Model(metaclass=abc.ABCMeta):
                 truth_init, predict_init = problem.bound_condition(coor_init, infer_value_init)
                 self.init_loss = self.bc_loss_f(predict_init, truth_init)
             self.predict_error_value = self.predict_error()
-            self.total_loss = self.pde_loss + self.bc_loss + self.init_loss
+            self.total_loss = self.pde_loss #+ self.bc_loss + self.init_loss
             self.add_loss_history()
             self.total_loss.backward()
             opt.step()
