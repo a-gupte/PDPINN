@@ -91,14 +91,19 @@ class Hs_loss(torch.autograd.Function):
         lon = np.matmul(diag, clm_concat)[1]
         
         print(np.matmul(diag, clm_concat).shape)
-        x = SHCoeffs.from_array(clm)
-        grad_input = 2 * x.expand_adjoint_analysis()
+#         x = SHCoeffs.from_array(clm)
+#         grad_input = 2 * x.expand_adjoint_analysis()
+        
+        ## use makegrid instead
+        grad_input = 2 * MakeGridDH_adjoint_analysis(clm, sampling = 2)
+        
 #         grad_input = np.pad(grad_input, ((3, 2), (5, 5)), 'constant', constant_values=(0,0))
-        grad_input = np.hstack((grad_input[1][:,::-1], grad_input[0] ))    
+#         grad_input = np.hstack((grad_input[1][:,::-1], grad_input[0] ))    
         print(grad_input.shape)
         
         print(grad_input.shape)
         print(grad_input)
+        grad_input = grad_input.reshape([-1,1])
         return torch.tensor(grad_input), None
 
 

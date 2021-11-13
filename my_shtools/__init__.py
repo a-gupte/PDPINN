@@ -143,7 +143,7 @@ __all__ = ['PlmBar', 'PlmBar_d1', 'PlBar', 'PlBar_d1', 'PlmON', 'PlmON_d1',
            'DHaj', 'MakeMagGradGridDH', 'SHRotateTapers', 'SlepianCoeffs',
            'SlepianCoeffsToSH', 'SHSCouplingMatrix', 'SHMTVar', 'SHSlepianVar',
            'SHSCouplingMatrixCap', 'MakeGravGridPoint', 'MakeMagGridPoint',
-           'MakeGradientDH', 'MakeGridDH_adjoint_analysis']
+           'MakeGradientDH']
 
 _fortran_functions = ['MakeGridPoint', 'MakeGridPointC', 'DownContFilterMA',
                       'DownContFilterMC', 'SHFindLWin', 'SHSjkPG',
