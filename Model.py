@@ -42,12 +42,8 @@ class Hs_loss(torch.autograd.Function):
         clm = ctx.clm
         
         diag = np.diag([(1 + i*(i+1))**s for i in range(clm.shape[1])])
-        clm_concat = np.hstack((clm[1][:,::-1], clm[0]))
-        
-#         x = SHCoeffs.from_array(clm)
-#         grad_input = 2 * x.expand_adjoint_analysis()
-        
-        ## use makegrid instead
+        # clm_concat = np.hstack((clm[1][:,::-1], clm[0]))
+
         grad_input = 2 * MakeGridDH_adjoint_analysis(clm, sampling = 2)   
         grad_input = grad_input.reshape([-1,1])
         return torch.tensor(grad_input), None
@@ -76,16 +72,14 @@ class Model(metaclass=abc.ABCMeta):
         self.opt = torch.optim.Adam(self.net.parameters(), lr=0.008)
 
     def set_pde_loss_f(self):
-        self.pde_loss_f = torch.nn.MSELoss()
-#         self.pde_loss_f = Hs_loss.apply
+        # self.pde_loss_f = torch.nn.MSELoss()
+        self.pde_loss_f = Hs_loss.apply
 
     def set_bc_loss_f(self):
         self.bc_loss_f = torch.nn.MSELoss()
-#         self.bc_loss_f = Hs_loss.apply
 
     def set_init_loss_f(self):
         self.init_loss_f = torch.nn.MSELoss()
-        # self.init_loss_f = Hs_loss.apply
 
     def train_epoch(self):
         pass

@@ -65,7 +65,8 @@ y = clm
 lhs = SHExpandDH(x, sampling=2)
 lhs = np.sum(y*lhs)
 
-rhs = MakeGridDH_adjoint_analysis(y, sampling=2)
+rhs = MakeGridDH_adjoint_analysis(y, sampling=2) 
+    ## this should be the adjoint operator acting on the spherical harmonic coefficients
 rhs = np.sum(rhs*x)
 
 print(rhs, lhs, lhs/rhs)
