@@ -9,56 +9,25 @@ from my_shcoeffs import SHCoeffs
 import my_backends 
 from my_backends.ducc0_wrapper import *
 
-N = 20 
-# class HsLoss(torch.nn.Module):
-#     def __init__(self, weight=None, size_average=True):
-#         super(HsLoss, self).__init__()
- 
-#     def forward(self, y_pred, y_true):        
-#         u = y_pred - y_true 
-#         n = u.shape[0]
-#         s = 1
-        
-#         coefficients = SHExpandDH(u.detach().numpy(), sampling=2, flag = False)
-#         nl = coefficients.shape[1]
-#         ls = np.arange(nl)[:10]
-#         power_per_l = spectrum(coefficients)[:10]
-#         result = 0
-#         for eig in power_per_l:
-#             result += power_per_l * (1 + eig) ** s
-#         return result
-    
-#     def gradient(self, y_pred, y_true):   
-#         u = y_pred - y_true 
-#         n = u.shape[0]
-#         s = 1
-#         # If flag = True: compute adjoint
-#         adjoint_coefficients = SHExpandDH(u.detach().numpy(), sampling=2, flag = True)
+N = 20
 
 class Hs_loss(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input, target):
-        ## Check that these are the arguments of a custom loss function.
-        
         
         u = input - target
         u = u.reshape([20, 40])
         n = u.shape[0]
         s = 0
-        # print('u', u.shape)
+        
         if not isinstance(u, np.ndarray):
             u = u.detach().numpy()
-
-        ## Maybe you want to comment out the two lines above.
         
         clm = SHExpandDH(u, sampling=2)
-        # nl = clm.shape[1]
-        # ls = np.arange(nl)
         power_per_l = spectrum(clm)
         result = 0
         for i in range(len(power_per_l)):
             result += (1 + i*(i+1))**s * power_per_l[i]
-#         ctx.save_for_backward(input, torch.tensor(clm), torch.tensor(result))
         ctx.input = input 
         ctx.clm = clm
         ctx.result = result
@@ -68,41 +37,18 @@ class Hs_loss(torch.autograd.Function):
 
     @staticmethod
     def backward(ctx, grad_output):
-#         input, clm, result = ctx.saved_tensors
         target = ctx.target
         s = ctx.s
         clm = ctx.clm
         
         diag = np.diag([(1 + i*(i+1))**s for i in range(clm.shape[1])])
-        ## Check the length of the array
-        print(diag.shape)
-        print(clm.shape)
-        print(clm[0])
-        print(clm[1])
-        print(diag)
-           
         clm_concat = np.hstack((clm[1][:,::-1], clm[0]))
-#         padding before sht?                   
-#         clm_concat = np.hstack((np.array( np.zeros((int(N/2),int(N/2)))), clm[1][:,::-1], clm[0], np.array(np.zeros((int(N/2),int(N/2)))) ))
-        print("CLM!!")
-        print(clm_concat.shape)
-        grid = np.matmul(diag, clm_concat)
-        lat = np.matmul(diag, clm_concat)[0]
-        lon = np.matmul(diag, clm_concat)[1]
         
-        print(np.matmul(diag, clm_concat).shape)
 #         x = SHCoeffs.from_array(clm)
 #         grad_input = 2 * x.expand_adjoint_analysis()
         
         ## use makegrid instead
-        grad_input = 2 * MakeGridDH_adjoint_analysis(clm, sampling = 2)
-        
-#         grad_input = np.pad(grad_input, ((3, 2), (5, 5)), 'constant', constant_values=(0,0))
-#         grad_input = np.hstack((grad_input[1][:,::-1], grad_input[0] ))    
-        print(grad_input.shape)
-        
-        print(grad_input.shape)
-        print(grad_input)
+        grad_input = 2 * MakeGridDH_adjoint_analysis(clm, sampling = 2)   
         grad_input = grad_input.reshape([-1,1])
         return torch.tensor(grad_input), None
 
@@ -127,15 +73,15 @@ class Model(metaclass=abc.ABCMeta):
         self.set_init_loss_f()
 
     def set_optimizer(self):
-        self.opt = torch.optim.Adam(self.net.parameters(), lr=0.01)
+        self.opt = torch.optim.Adam(self.net.parameters(), lr=0.008)
 
     def set_pde_loss_f(self):
-#         self.pde_loss_f = torch.nn.MSELoss()
-        self.pde_loss_f = Hs_loss.apply
+        self.pde_loss_f = torch.nn.MSELoss()
+#         self.pde_loss_f = Hs_loss.apply
 
     def set_bc_loss_f(self):
         self.bc_loss_f = torch.nn.MSELoss()
-        # self.bc_loss_f = Hs_loss.apply
+#         self.bc_loss_f = Hs_loss.apply
 
     def set_init_loss_f(self):
         self.init_loss_f = torch.nn.MSELoss()
