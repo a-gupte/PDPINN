@@ -48,6 +48,57 @@ class Hs_loss(torch.autograd.Function):
         grad_input = grad_input.reshape([-1,1])
         return torch.tensor(grad_input), None
 
+from torch.autograd import Function
+
+class Hs_loss_debug(Function):
+    
+    @staticmethod
+    def forward(ctx, y_pred, y):    
+        ctx.save_for_backward(y_pred, y)
+        return ( (y - y_pred)**2 ).mean()
+    
+    @staticmethod
+    def backward(ctx, grad_output):
+
+        y_pred, y = ctx.saved_tensors
+        grad_input = 2 * (y_pred - y) / y_pred.shape[0]        
+        return grad_input, None
+
+# class Hs_loss_debug(torch.autograd.Function):
+#     @staticmethod
+#     def forward(ctx, y_pred, y):
+        
+#         u = y_pred - y
+#         u = u.reshape([20, 40])
+#         n = u.shape[0]
+#         s = 0
+        
+#         if not isinstance(u, np.ndarray):
+#             u = u.detach().numpy()
+        
+#         clm = SHExpandDH(u, sampling=2)
+#         power_per_l = spectrum(clm)
+#         result = 0
+#         for i in range(len(power_per_l)):
+#             result += (1 + i*(i+1))**s * power_per_l[i]
+# #         ctx.y_pred = y_pred 
+# #         ctx.clm = clm
+# #         ctx.result = result
+# #         ctx.y = y
+# #         ctx.s = s
+#         clm = torch.tensor(clm)
+#         result = torch.tensor(result)
+#         s = torch.tensor(s)
+#         ctx.save_for_backward(y_pred, y)
+#         return ( (y - y_pred)**2 ).mean()
+# #         return result
+    
+#     @staticmethod
+#     def backward(ctx, grad_output):
+
+#         y_pred, y = ctx.saved_tensors
+#         grad_input = 2 * (y_pred - y) / y_pred.shape[0]        
+#         return grad_input, None
 
 class Model(metaclass=abc.ABCMeta):
     @abc.abstractmethod
@@ -58,6 +109,7 @@ class Model(metaclass=abc.ABCMeta):
 
         # the following should be implemented
         self.opt = None
+        self.scheduler = None
         self.pde_loss_f = None
         self.bc_loss_f = None
         self.init_loss_f = None
@@ -69,17 +121,21 @@ class Model(metaclass=abc.ABCMeta):
         self.set_init_loss_f()
 
     def set_optimizer(self):
-        self.opt = torch.optim.Adam(self.net.parameters(), lr=0.008)
+#         self.opt = torch.optim.Adam(self.net.parameters(), lr=0.1)
+        self.opt = torch.optim.SGD(self.net.parameters(), lr=0.1, momentum=1e-3)
+        self.scheduler = torch.optim.lr_scheduler.StepLR(self.opt, step_size=20, gamma=0.1)
 
     def set_pde_loss_f(self):
-        # self.pde_loss_f = torch.nn.MSELoss()
-        self.pde_loss_f = Hs_loss.apply
+#         self.pde_loss_f = torch.nn.MSELoss()
+        self.pde_loss_f = Hs_loss_debug.apply
 
     def set_bc_loss_f(self):
-        self.bc_loss_f = torch.nn.MSELoss()
+#         self.bc_loss_f = torch.nn.MSELoss()
+        self.bc_loss_f = Hs_loss_debug.apply
 
     def set_init_loss_f(self):
-        self.init_loss_f = torch.nn.MSELoss()
+#         self.init_loss_f = torch.nn.MSELoss()
+        self.init_loss_f = Hs_loss_debug.apply
 
     def train_epoch(self):
         pass
