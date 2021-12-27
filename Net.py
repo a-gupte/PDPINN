@@ -80,6 +80,7 @@ class SPH_Sphere_Net(Basis_Net):
 
 
 def coordinates_get_3d(x):
+    ## returns cartesian coordinates from polar coordinates. points are on the unit sphere.
     u = torch.sin(x[:, :1]) * torch.sin(x[:, 1:])
     v = torch.sin(x[:, :1]) * torch.cos(x[:, 1:])
     w = torch.cos(x[:, :1])

@@ -52,7 +52,6 @@ def Y_3_0(theta, phi):
     x, y, z = spherical_to_cartesian(theta, phi)
     return sqrt(7.0/16/pi) * z * (2*z**2 - 3*x**2 - 3*y**2)
 
-
 def Y_4_0(theta, phi):
     x, y, z = spherical_to_cartesian(theta, phi)
     return 3/16 * sqrt(1.0/pi) * (35*z**4 - 30*z**2)
@@ -102,8 +101,8 @@ def true_solution_low_high_freq(theta, phi):
 #---------------------- MODIFY CODE BELOW TO CHANGE rhs_function & true_solution -------------------------- 
 
 def rhs_function(theta, phi):
-    return rhs_function_freq_2_4(theta, phi)
+    return rhs_function_low_high_freq(theta, phi)
 
 def true_solution(theta, phi):
-    return true_solution_freq_2_4(theta, phi)
+    return true_solution_low_high_freq(theta, phi)
 
