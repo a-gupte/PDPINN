@@ -64,6 +64,8 @@ def Y_4_2(theta, phi):
     x, y, z = spherical_to_cartesian(theta, phi)
     return 3/8 * sqrt(5.0/(pi)) * (x**2 - y**2) * 7*z**2
 
+
+
 #---------------------- PAPER --------------------------
 def rhs_function_paper(theta, phi):
     m = 7
