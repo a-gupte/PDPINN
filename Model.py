@@ -12,6 +12,7 @@ from my_backends.ducc0_wrapper import *
 from torch.autograd import Function
 
 N = 20
+s = 0
 
 class Hs_loss(torch.autograd.Function):
     @staticmethod
@@ -20,7 +21,7 @@ class Hs_loss(torch.autograd.Function):
         u = input - target
         u = u.reshape([20, 40])
         n = u.shape[0]
-        s = 0
+        # s = 0
         
         if not isinstance(u, np.ndarray):
             u = u.detach().numpy()
@@ -51,13 +52,14 @@ class Hs_loss(torch.autograd.Function):
         return torch.tensor(grad_input), None
 
 class Hs_loss_trial(Function):
+
     @staticmethod
     def forward(ctx, y_pred, y):
         ctx.save_for_backward(y_pred, y)
         u = y_pred - y
         u = u.reshape([20, 40])
         n = u.shape[0]
-        s = 1
+        s = 0
         
         if not isinstance(u, np.ndarray):
             u = u.detach().numpy()
@@ -77,7 +79,7 @@ class Hs_loss_trial(Function):
         u = y_pred - y
         u = u.reshape([20, 40])
         n = u.shape[0]
-        s = 1
+        s = 0
         
         if not isinstance(u, np.ndarray):
             u = u.detach().numpy()
@@ -135,8 +137,8 @@ class Model(metaclass=abc.ABCMeta):
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.opt, step_size=20, gamma=0.1)
 
     def set_pde_loss_f(self):
-        # self.pde_loss_f = torch.nn.MSELoss()
-        self.pde_loss_f = Hs_loss_trial.apply
+        self.pde_loss_f = torch.nn.MSELoss()
+        # self.pde_loss_f = Hs_loss_trial.apply
 
     def set_bc_loss_f(self):
         self.bc_loss_f = torch.nn.MSELoss()
