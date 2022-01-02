@@ -4,8 +4,6 @@ from math import pi
 from math import sqrt
 import numpy as np
 
-from orthopoly.spherical_harmonic import *
-
 ## return the real spherical harmonics in terms of theta, phi for spherical harmonic for l=0, 1, ... and m = -l, -l+1, ..., l-1, l
 # theta = data[:, :1] azimuthal angle
 # phi = data[:, 1:] polar angle
@@ -114,10 +112,10 @@ def true_solution_freq_2_8(theta, phi):
 
 
 def rhs_function_freq_2_8_baseline(theta, phi):
-    return 0.3 * 72 * Y_8_0(theta, phi) + 6 * Y_2_2(theta, phi)
+    return 0.6 * 72 * Y_8_0(theta, phi) + 6 * Y_2_2(theta, phi)
 
 def true_solution_freq_2_8_baseline(theta, phi):
-    return - 0.3 * Y_8_0(theta, phi) - Y_2_2(theta, phi)
+    return - 0.6 * Y_8_0(theta, phi) - Y_2_2(theta, phi)
 
 #---------------------- MODIFY CODE BELOW TO CHANGE rhs_function & true_solution -------------------------- 
 n1 = 8
@@ -127,11 +125,11 @@ n2 = 2
 m2 = 2
 
 def rhs_function(theta, phi):
-    return rhs_function_low_high_freq(theta, phi)
+    return rhs_function_freq_2_8(theta, phi)
     # return - n1 * (n1 + 1) * sph_har(theta, phi, n1, m1) - n2 * (n2 + 1) * sph_har(theta, phi, n2, m2)
 
 def true_solution(theta, phi):
-    return true_solution_low_high_freq(theta, phi)
+    return true_solution_freq_2_8(theta, phi)
     # theta = theta.clip(0, pi - 0.0001)
     # phi = phi.clip(0, 2 * pi - 0.0001)
     # return sph_har(theta, phi, n1, m1) + sph_har(theta, phi, n2, m2)
