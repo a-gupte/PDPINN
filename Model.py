@@ -151,57 +151,57 @@ class Model(metaclass=abc.ABCMeta):
     def train_epoch(self):
         pass
 
-    # def train(self):
-    #     problem = self.problem
-    #     net = self.net
-    #     opt = self.opt
-    #     _, axe = plt.subplots(1, 10, figsize=(50, 5))
-    #     maxiter = self.maxiter
+    def train(self):
+        problem = self.problem
+        net = self.net
+        opt = self.opt
+        _, axe = plt.subplots(1, 10, figsize=(50, 5))
+        maxiter = self.maxiter
 
-    #     for iter in range(maxiter):
-    #         net.zero_grad()
+        for iter in range(maxiter):
+            net.zero_grad()
 
-    #         coor_inner = self.inner_sample().detach().requires_grad_(True)
-    #         # coor_inner = self.inner_sample().requires_grad_(True)
-    #         infer_value_inner = net(coor_inner)
-    #         truth_inner, predict_inner = problem.pde(coor_inner, infer_value_inner)
-    #         self.pde_loss = self.pde_loss_f(predict_inner, truth_inner)
+            coor_inner = self.inner_sample().detach().requires_grad_(True)
+            # coor_inner = self.inner_sample().requires_grad_(True)
+            infer_value_inner = net(coor_inner)
+            truth_inner, predict_inner = problem.pde(coor_inner, infer_value_inner)
+            self.pde_loss = self.pde_loss_f(predict_inner, truth_inner)
 
-    #         bc_samples = self.bc_sample()
-    #         if bc_samples is None:
-    #             self.bc_loss = torch.tensor(0.)
-    #         else:
-    #             coor_bc = bc_samples.detach().requires_grad_(True)
-    #             # coor_bc = bc_samples.requires_grad_(True)
-    #             infer_value_bc = net(coor_bc)
-    #             truth_bc, predict_bc = problem.bound_condition(coor_bc, infer_value_bc)
-    #             self.bc_loss = self.bc_loss_f(predict_bc, truth_bc)
+            bc_samples = self.bc_sample()
+            if bc_samples is None:
+                self.bc_loss = torch.tensor(0.)
+            else:
+                coor_bc = bc_samples.detach().requires_grad_(True)
+                # coor_bc = bc_samples.requires_grad_(True)
+                infer_value_bc = net(coor_bc)
+                truth_bc, predict_bc = problem.bound_condition(coor_bc, infer_value_bc)
+                self.bc_loss = self.bc_loss_f(predict_bc, truth_bc)
 
-    #         init_samples = self.init_sample()
-    #         if init_samples is None:
-    #             self.init_loss = torch.tensor(0.)
-    #         else:
-    #             coor_init = init_samples.detach().requires_grad_(True)
-    #             # coor_init = init_samples.requires_grad_(True)
-    #             infer_value_init = net(coor_init)
-    #             truth_init, predict_init = problem.bound_condition(coor_init, infer_value_init)
-    #             self.init_loss = self.bc_loss_f(predict_init, truth_init)
-    #         self.predict_error_value = self.predict_error()
-    #         self.total_loss = self.pde_loss + self.bc_loss + self.init_loss
-    #         self.add_loss_history()
-    #         self.total_loss.backward()
-    #         opt.step()
-    #         opt.zero_grad()
-    #         if iter % (maxiter // 100) == 0:
-    #             print("iteration {}: loss = {}".format(iter, self.total_loss))
-    #         if iter > 0 and (iter % (maxiter // 10) == 0):
-    #             # torch.save(net, 'cb_net_{}_order7_03121711'.format(iter))
-    #             self.plot(net, axe[iter // (maxiter // 10)])
-    #     if self.problem.ground_truth:
-    #         self.plot(self.problem.ground_truth, axe[0])
-    #     # coor = sphere_surface_sample(5000)
-    #     # plot_sphere(net, coor)
-    #     plt.show()
+            init_samples = self.init_sample()
+            if init_samples is None:
+                self.init_loss = torch.tensor(0.)
+            else:
+                coor_init = init_samples.detach().requires_grad_(True)
+                # coor_init = init_samples.requires_grad_(True)
+                infer_value_init = net(coor_init)
+                truth_init, predict_init = problem.bound_condition(coor_init, infer_value_init)
+                self.init_loss = self.bc_loss_f(predict_init, truth_init)
+            self.predict_error_value = self.predict_error()
+            self.total_loss = self.pde_loss + self.bc_loss + self.init_loss
+            self.add_loss_history()
+            self.total_loss.backward()
+            opt.step()
+            opt.zero_grad()
+            if iter % (maxiter // 100) == 0:
+                print("iteration {}: loss = {}".format(iter, self.total_loss))
+            if iter > 0 and (iter % (maxiter // 10) == 0):
+                # torch.save(net, 'cb_net_{}_order7_03121711'.format(iter))
+                self.plot(net, axe[iter // (maxiter // 10)])
+        if self.problem.ground_truth:
+            self.plot(self.problem.ground_truth, axe[0])
+        # coor = sphere_surface_sample(5000)
+        # plot_sphere(net, coor)
+        plt.show()
 
     def predict_error(self):
         return None
