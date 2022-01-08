@@ -12,7 +12,7 @@ from my_backends.ducc0_wrapper import *
 from torch.autograd import Function
 
 N = 20
-s = 0
+# s = 0
 
 class Hs_loss(torch.autograd.Function):
     @staticmethod
@@ -59,7 +59,7 @@ class Hs_loss_trial(Function):
         u = y_pred - y
         u = u.reshape([20, 40])
         n = u.shape[0]
-        s = 0
+        s = 1
         
         if not isinstance(u, np.ndarray):
             u = u.detach().numpy()
@@ -79,7 +79,7 @@ class Hs_loss_trial(Function):
         u = y_pred - y
         u = u.reshape([20, 40])
         n = u.shape[0]
-        s = 0
+        s = 1
         
         if not isinstance(u, np.ndarray):
             u = u.detach().numpy()
