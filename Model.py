@@ -12,44 +12,6 @@ from my_backends.ducc0_wrapper import *
 from torch.autograd import Function
 
 N = 20
-# s = 0
-
-class Hs_loss(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx, input, target):
-        
-        u = input - target
-        u = u.reshape([20, 40])
-        n = u.shape[0]
-        # s = 0
-        
-        if not isinstance(u, np.ndarray):
-            u = u.detach().numpy()
-        
-        clm = SHExpandDH(u, sampling=2)
-        power_per_l = spectrum(clm)
-        result = 0
-        for i in range(len(power_per_l)):
-            result += (1 + i*(i+1))**s * power_per_l[i]
-        ctx.input = input 
-        ctx.clm = clm
-        ctx.result = result
-        ctx.target = target
-        ctx.s = s
-        return torch.tensor(result)
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        target = ctx.target
-        s = ctx.s
-        clm = ctx.clm
-        
-        diag = np.diag([(1 + i*(i+1))**s for i in range(clm.shape[1])])
-        # clm_concat = np.hstack((clm[1][:,::-1], clm[0]))
-
-        grad_input = 2 * MakeGridDH_adjoint_analysis(clm, sampling = 2)   
-        grad_input = grad_input.reshape([-1,1])
-        return torch.tensor(grad_input), None
 
 class Hs_loss_trial(Function):
 
@@ -59,7 +21,7 @@ class Hs_loss_trial(Function):
         u = y_pred - y
         u = u.reshape([20, 40])
         n = u.shape[0]
-        s = 1
+        s = 2
         
         if not isinstance(u, np.ndarray):
             u = u.detach().numpy()
@@ -79,7 +41,7 @@ class Hs_loss_trial(Function):
         u = y_pred - y
         u = u.reshape([20, 40])
         n = u.shape[0]
-        s = 1
+        s = 2
         
         if not isinstance(u, np.ndarray):
             u = u.detach().numpy()
@@ -91,10 +53,10 @@ class Hs_loss_trial(Function):
             result += (1 + i*(i+1))**s * power_per_l[i]
         
         diag = np.diag([(1 + i*(i+1))**s for i in range(clm.shape[1])])
-        # clm_concat = np.hstack((clm[1][:,::-1], clm[0]))
 
-        grad_input = 2 * MakeGridDH_adjoint_analysis(clm, sampling = 2)   
+        grad_input = 2 * MakeGridDH_adjoint_analysis(diag @ clm, sampling = 2)   
         grad_input = grad_input.reshape([-1,1])
+
         return torch.tensor(grad_input), None
 
 class myMSELoss(Function):
@@ -137,8 +99,8 @@ class Model(metaclass=abc.ABCMeta):
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.opt, step_size=20, gamma=0.1)
 
     def set_pde_loss_f(self):
-        self.pde_loss_f = torch.nn.MSELoss()
-        # self.pde_loss_f = Hs_loss_trial.apply
+        # self.pde_loss_f = torch.nn.MSELoss()
+        self.pde_loss_f = Hs_loss_trial.apply
 
     def set_bc_loss_f(self):
         self.bc_loss_f = torch.nn.MSELoss()

@@ -110,6 +110,15 @@ def rhs_function_freq_2_8(theta, phi):
 def true_solution_freq_2_8(theta, phi):
     return - Y_8_0(theta, phi) - Y_2_2(theta, phi)
 
+#-----------------------
+
+def rhs_function_freq_2_8_03_03(theta, phi):
+    return 0.3 * 72 * Y_8_0(theta, phi) + 0.3 * 6 * Y_2_2(theta, phi)
+
+def true_solution_freq_2_8_03_03(theta, phi):
+    return - 0.3 * Y_8_0(theta, phi) - 0.3 * Y_2_2(theta, phi)
+
+#-----------------------
 
 def rhs_function_freq_2_8_baseline(theta, phi):
     return 0.6 * 72 * Y_8_0(theta, phi) + 6 * Y_2_2(theta, phi)
@@ -125,11 +134,11 @@ n2 = 2
 m2 = 2
 
 def rhs_function(theta, phi):
-    return rhs_function_freq_2_8(theta, phi)
+    return rhs_function_freq_2_4(theta, phi)
     # return - n1 * (n1 + 1) * sph_har(theta, phi, n1, m1) - n2 * (n2 + 1) * sph_har(theta, phi, n2, m2)
 
 def true_solution(theta, phi):
-    return true_solution_freq_2_8(theta, phi)
+    return true_solution_freq_2_4(theta, phi)
     # theta = theta.clip(0, pi - 0.0001)
     # phi = phi.clip(0, 2 * pi - 0.0001)
     # return sph_har(theta, phi, n1, m1) + sph_har(theta, phi, n2, m2)
